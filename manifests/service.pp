@@ -94,6 +94,12 @@ class logstash::service {
           path => $::path,
           unless => 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -executionpolicy remotesigned Get-Service -Name logstash',
         } ~> Service['logstash']
+        # Dummy exec for require dependencies
+        exec { 'logstash-system-install':
+          command     => "cmd /c REM",
+          refreshonly => true,
+          notify      => Service['logstash'],
+        }
       }
       'Linux': {
         # Invoke 'system-install', which generates startup scripts based on the
