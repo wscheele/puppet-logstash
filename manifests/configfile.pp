@@ -40,7 +40,7 @@ define logstash::configfile(
   include logstash
 
   $path = "${logstash::config_dir}/conf.d/${name}"
-  $owner = 'root'
+  $owner = $logstash::logstash_user
   $group = $logstash::logstash_group
   $mode  = '0640'
   $require = Package['logstash'] # So that we have '/etc/logstash/conf.d'.

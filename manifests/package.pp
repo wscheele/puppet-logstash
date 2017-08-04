@@ -21,6 +21,8 @@ class logstash::package(
   $package_url = $logstash::package_url,
   $version = $logstash::version,
   $package_name = $logstash::package_name,
+  $package_provider_default = $logstash::package_provider_default,
+  $download_base_url = "https://artifacts.elastic.co/downloads/logstash"
 )
 {
   if $logstash::ensure == 'present' {
@@ -92,17 +94,44 @@ class logstash::package(
       $package_ensure = 'absent' # "purged" not supported by provider
     }
     else {
-      $package_provider = undef # ie. automatic
+      $package_provider = $package_provider_default # ie. automatic
       $package_ensure = 'purged'
     }
   }
 
-  package { 'logstash':
-    ensure   => $package_ensure,
-    name     => $package_name,
-    source   => $package_local_file, # undef if using package manager.
-    provider => $package_provider, # undef if using package manager.
-    require  => $package_require,
+  case $::kernel {
+    'Linux': {
+      package { 'logstash':
+        ensure   => $package_ensure,
+        name     => $package_name,
+        source   => $package_local_file, # undef if using package manager.
+        provider => $package_provider, # undef if using package manager.
+        require  => $package_require,
+      }
+    }
+    'windows': {
+      if $logstash::ensure == 'present' {
+        archive {"C:\\Windows\\Temp\\logstash-${logstash::version}.zip":
+          ensure       => present,
+          source       => "${download_base_url}/logstash-${logstash::version}.zip",
+          extract      => true,
+          extract_path => inline_template("<%= Pathname.new(scope['logstash::home_dir']).parent %>"),
+          creates      => $logstash::home_dir,
+          cleanup      => true,
+        } -> # add package resource for other resources to require
+        package {'logstash':
+          ensure => absent,
+          require  => $package_require,
+        }
+      } else {
+        file {$logstash::home_dir:
+          ensure => absent,
+        }
+      }
+    }
+    default: {
+      fail("${::kernel} not supported")
+    }
   }
 
   Exec {

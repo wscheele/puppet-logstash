@@ -73,26 +73,40 @@ class logstash::service {
 
   if $service_ensure == 'running' {
     # Then make sure the Logstash startup options are up to date.
-    file {'/etc/logstash/startup.options':
+    file {"${logstash::config_dir}/startup.options":
       content => template('logstash/startup.options.erb'),
     }
 
     # ..and make sure the JVM options are up to date.
-    file {'/etc/logstash/jvm.options':
+    file {"${logstash::config_dir}/jvm.options":
       content => template('logstash/jvm.options.erb'),
     }
 
     # ..and the Logstash internal settings too.
-    file {'/etc/logstash/logstash.yml':
+    file {"${logstash::config_dir}/logstash.yml":
       content => template('logstash/logstash.yml.erb'),
     }
 
-    # Invoke 'system-install', which generates startup scripts based on the
-    # contents of the 'startup.options' file.
-    exec { 'logstash-system-install':
-      command     => "${logstash::home_dir}/bin/system-install",
-      refreshonly => true,
-      notify      => Service['logstash'],
+    case $::kernel {
+      # XXX remove work-around when system-install supports windows service installation
+      'windows': {
+        exec { "sc.exe create logstash binpath= \"${logstash::home_dir}/bin/logstash.bat --path.settings=${logstash::config_dir}\"":
+          path => $::path,
+          unless => 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -executionpolicy remotesigned Get-Service -Name logstash',
+        } ~> Service['logstash']
+      }
+      'Linux': {
+        # Invoke 'system-install', which generates startup scripts based on the
+        # contents of the 'startup.options' file.
+        exec { 'logstash-system-install':
+          command     => "${logstash::home_dir}/bin/system-install",
+          refreshonly => true,
+          notify      => Service['logstash'],
+        }
+      }
+      default: {
+        fail("${::kernel} not supported")
+      }
     }
   }
 
@@ -144,8 +158,8 @@ class logstash::service {
   }
 
   File {
-    owner  => 'root',
-    group  => 'root',
+    owner  => $logstash::logstash_user,
+    group  => $logstash::logstash_group,
     mode   => '0664',
     notify => Exec['logstash-system-install'],
   }

@@ -37,14 +37,31 @@
 #
 # @param environment [String] Environment used when running 'logstash-plugin'
 #
+# @param creates [String] Can be used to speedup is_installed? check by puppet creates attribute instead of slow 'logstash-plugin list'
+#
 define logstash::plugin (
   $source = undef,
   $ensure = present,
   $environment = [],
+  $creates = undef,
 )
 {
   require logstash::package
-  $exe = "${logstash::home_dir}/bin/logstash-plugin"
+  case $::kernel {
+    'windows': {
+      $exe = "${logstash::home_dir}\\bin\\logstash-plugin.bat"
+
+      # XXX Fix plugin batch script, add missing exit for puppet to properly see exit status. should get reported/fixed on logstash proper.
+      ensure_resource('file_line', 'patch_logstash-plugin.bat_for_puppet', {
+        ensure => present,
+        path => $exe,
+        line => 'EXIT /B %ERRORLEVEL%',
+      })
+    }
+    default: {
+      $exe = "${logstash::home_dir}/bin/logstash-plugin"
+    }
+  }
 
   case $source { # Where should we get the plugin from?
     undef: {
@@ -87,6 +104,7 @@ define logstash::plugin (
       exec { "install-${name}":
         command => "${exe} install ${plugin}",
         unless  => "${exe} list ^${name}$",
+        creates => $creates,
       }
     }
 
@@ -94,6 +112,7 @@ define logstash::plugin (
       exec { "install-${name}":
         command => "${exe} install --version ${ensure} ${plugin}",
         unless  => "${exe} list --verbose ^${name}$ | grep --fixed-strings --quiet '(${ensure})'",
+        creates => $creates,
       }
     }
 
@@ -110,7 +129,7 @@ define logstash::plugin (
   }
 
   Exec {
-    path        => '/bin:/usr/bin',
+    path        => $::path,
     user        => $logstash::logstash_user,
     timeout     => 1800,
     environment => $environment,

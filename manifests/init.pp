@@ -129,6 +129,7 @@ class logstash(
   $version           = undef,
   $package_url       = undef,
   $package_name      = 'logstash',
+  $package_provider_default = undef,
   $download_timeout  = 600,
   $logstash_user     = 'logstash',
   $logstash_group    = 'logstash',
@@ -140,9 +141,9 @@ class logstash(
   $jvm_options       = [],
   $manage_repo       = true,
   $repo_version      = '5.x',
+  $home_dir          = '/usr/share/logstash',
 )
 {
-  $home_dir = '/usr/share/logstash'
 
   validate_bool($auto_upgrade)
   validate_bool($restart_on_change)
