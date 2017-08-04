@@ -130,8 +130,12 @@ define logstash::plugin (
 
   Exec {
     path        => $::path,
-    user        => $logstash::logstash_user,
     timeout     => 1800,
     environment => $environment,
+  }
+  if ($::kernel == 'Linux') {
+    Exec {
+      user        => $logstash::logstash_user,
+    }
   }
 }
