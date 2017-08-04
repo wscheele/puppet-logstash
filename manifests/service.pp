@@ -96,7 +96,8 @@ class logstash::service {
         } ~> Service['logstash']
         # Dummy exec for require dependencies
         exec { 'logstash-system-install':
-          command     => "cmd /c REM",
+          path        => $::path,
+          command     => "cmd.exe /c REM",
           refreshonly => true,
           notify      => Service['logstash'],
         }
