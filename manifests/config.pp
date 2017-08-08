@@ -38,6 +38,11 @@ class logstash::config {
   File {
     owner => $logstash::logstash_user,
     group => $logstash::logstash_group,
-    mode  => '0755',
+  }
+
+  if ($::kernel == 'Linux') {
+    File {
+      mode  => '0755',
+    }
   }
 }
