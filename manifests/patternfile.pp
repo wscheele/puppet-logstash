@@ -26,6 +26,12 @@ define logstash::patternfile ($source = undef, $filename = undef) {
     'Source must begin with "puppet://" or "file://")'
   )
 
+  if ($::kernel == 'Linux') {
+    $mode = '0640'
+  } else {
+    $mode = undef
+  }
+
   if($filename) { $destination = $filename }
   else          { $destination = basename($source) }
 
@@ -34,7 +40,7 @@ define logstash::patternfile ($source = undef, $filename = undef) {
     source => $source,
     owner  => $logstash::logstash_user,
     group  => $logstash::logstash_group,
-    mode   => '0640',
+    mode   => $mode,
     tag    => ['logstash_config'],
   }
 }
