@@ -90,9 +90,9 @@ class logstash::service {
     case $::kernel {
       # XXX remove work-around when system-install supports windows service installation
       'windows': {
-        exec { "sc.exe create logstash binpath= \"${logstash::home_dir}/bin/logstash.bat --path.settings=${logstash::config_dir}\"":
+        exec { "NSSM install logstash ${logstash::home_dir}/bin/logstash.bat --path.settings=${logstash::config_dir}":
           path => $::path,
-          unless => 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -executionpolicy remotesigned Get-Service -Name logstash',
+          unless => 'NSSM status logstash',
         } ~> Service['logstash']
         # Dummy exec for require dependencies
         exec { 'logstash-system-install':

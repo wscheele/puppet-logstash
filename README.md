@@ -109,12 +109,12 @@ class { 'logstash':
 ```
 
 ### Windows (hiera) configuration example
+Note: windows service installation relies on NSSM being installed.
+
 ```yaml
 logstash::version: '5.5.1'
 logstash::manage_repo: false
 logstash::logstash_user: 'Administrators'
-logstash::logstash_group: 'Administrators'
-logstash::logstash_user: 'SYSTEM'
 logstash::logstash_group: 'Administrators'
 logstash::home_dir: "C:/Progra~1/logstash-%{hiera('logstash::version')}"
 logstash::config_dir: "%{hiera('logstash::home_dir')}/config"
