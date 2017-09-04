@@ -101,9 +101,17 @@ define logstash::plugin (
 
   case $ensure {
     'present': {
+      $grep = case $::kernel {
+        'windows': {
+          'findstr'
+        }
+        default: {
+          'grep -q'
+        }
+      }
       exec { "install-${name}":
         command => "${exe} install ${plugin}",
-        unless  => "${exe} list ^${name}$",
+        unless  => "${grep} '${name}' ${logstash::home_dir}/Gemfile",
         creates => $creates,
       }
     }
@@ -111,7 +119,7 @@ define logstash::plugin (
     /^\d+\.\d+\.\d+/: {
       exec { "install-${name}":
         command => "${exe} install --version ${ensure} ${plugin}",
-        unless  => "${exe} list --verbose ^${name}$ | grep --fixed-strings --quiet '(${ensure})'",
+        unless  => "${grep} '${name}' ${logstash::home_dir}/Gemfile | ${grep} '${ensure}'",
         creates => $creates,
       }
     }
