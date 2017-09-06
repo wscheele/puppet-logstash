@@ -111,7 +111,7 @@ define logstash::plugin (
       }
       exec { "install-${name}":
         command => "${exe} install ${plugin}",
-        unless  => "${grep} '${name}' ${logstash::home_dir}/Gemfile",
+        unless  => "${grep} ${name} ${logstash::home_dir}/Gemfile",
         creates => $creates,
       }
     }
@@ -119,7 +119,7 @@ define logstash::plugin (
     /^\d+\.\d+\.\d+/: {
       exec { "install-${name}":
         command => "${exe} install --version ${ensure} ${plugin}",
-        unless  => "${grep} '${name}' ${logstash::home_dir}/Gemfile | ${grep} '${ensure}'",
+        unless  => "${grep} ${name} ${logstash::home_dir}/Gemfile | ${grep} ${ensure}",
         creates => $creates,
       }
     }
