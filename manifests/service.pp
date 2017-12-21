@@ -94,12 +94,12 @@ class logstash::service {
     # the file, which will default Logstash to traditional single-pipeline
     # behaviour.
     if(empty($pipelines)) {
-      file {"${logstash::config_dir}/logstash/pipelines.yml":
+      file {"${logstash::config_dir}/pipelines.yml":
         content => '',
       }
     }
     else {
-      file {"${logstash::config_dir}/logstash/pipelines.yml":
+      file {"${logstash::config_dir}/pipelines.yml":
         content => template('logstash/pipelines.yml.erb'),
       }
     }
