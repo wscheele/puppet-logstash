@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 ruby '2.3.4'
 
-puppetversion = ENV['PUPPET_VERSION'] || '4.10.4'
+puppetversion = ENV['PUPPET_VERSION'] || '4.10.7'
 gem 'puppet', puppetversion, :require => false
 
 gem 'beaker', '3.15.0'
@@ -19,6 +19,7 @@ gem 'docker-api', '~> 1.0'
 gem 'rubysl-securerandom'
 gem 'ci_reporter_rspec'
 gem 'google-api-client', '0.9.4' # 0.9.5 needs Ruby 2.
+gem 'rgen'
 gem 'rspec', '~> 3.0'
 gem 'rake'
 gem 'metadata-json-lint'
@@ -29,6 +30,7 @@ gem 'puppetlabs_spec_helper'
 gem 'puppet-syntax'
 gem 'rspec-puppet-facts'
 gem 'rubocop'
+gem 'semantic_puppet'
 gem 'serverspec', '2.38.0'
 gem 'specinfra', '2.67.3'
 gem 'syck'

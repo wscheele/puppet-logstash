@@ -37,13 +37,10 @@
 #
 # @param environment [String] Environment used when running 'logstash-plugin'
 #
-# @param creates [String] Can be used to speedup is_installed? check by puppet creates attribute instead of slow 'logstash-plugin list'
-#
 define logstash::plugin (
   $source = undef,
   $ensure = present,
   $environment = [],
-  $creates = undef,
 )
 {
   require logstash::package
@@ -62,6 +59,14 @@ define logstash::plugin (
       $exe = "${logstash::home_dir}/bin/logstash-plugin"
     }
   }
+
+  Exec {
+    path        => $::path,
+    user        => $logstash::logstash_user,
+    timeout     => 1800,
+    environment => $environment,
+  }
+
 
   case $source { # Where should we get the plugin from?
     undef: {
@@ -86,7 +91,15 @@ define logstash::plugin (
         source => $source,
         before => Exec["install-${name}"],
       }
-      $plugin = $downloaded_file
+
+      case $source {
+        /\.zip$/: {
+          $plugin = "file://${downloaded_file}"
+        }
+        default: {
+          $plugin = $downloaded_file
+        }
+      }
     }
 
     /^https?:/: {
@@ -133,17 +146,6 @@ define logstash::plugin (
 
     default: {
       fail "'ensure' should be 'present', 'absent', or a version like '1.3.4'."
-    }
-  }
-
-  Exec {
-    path        => $::path,
-    timeout     => 1800,
-    environment => $environment,
-  }
-  if ($::kernel == 'Linux') {
-    Exec {
-      user        => $logstash::logstash_user,
     }
   }
 }

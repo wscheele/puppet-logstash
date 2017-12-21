@@ -25,10 +25,32 @@ class logstash::package(
   $download_base_url = "https://artifacts.elastic.co/downloads/logstash"
 )
 {
+  Exec {
+    path      => [ '/bin', '/usr/bin', '/usr/local/bin' ],
+    cwd       => '/',
+    tries     => 3,
+    try_sleep => 10,
+  }
+
+  File {
+    ensure => file,
+    backup => false,
+  }
+
   if $logstash::ensure == 'present' {
     # Check if we want to install a specific version.
     if $version {
-      $package_ensure = $version
+      if $::osfamily == 'redhat' {
+        # Prerelease RPM packages have tildes ("~") in their version strings,
+        # which can be quite surprising to the user. Let them say:
+        #   6.0.0-rc2
+        # not:
+        #   6.0.0~rc2
+        $package_ensure = regsubst($version, '(\d+)-(alpha|beta|rc)(\d+)$', '\1~\2\3')
+      }
+      else {
+        $package_ensure = $version
+      }
     }
     else {
       $package_ensure = $logstash::auto_upgrade ? {
@@ -132,17 +154,5 @@ class logstash::package(
     default: {
       fail("${::kernel} not supported")
     }
-  }
-
-  Exec {
-    path      => [ '/bin', '/usr/bin', '/usr/local/bin' ],
-    cwd       => '/',
-    tries     => 3,
-    try_sleep => 10,
-  }
-
-  File {
-    ensure => file,
-    backup => false,
   }
 }

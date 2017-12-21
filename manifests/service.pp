@@ -47,6 +47,14 @@ class logstash::service {
   $settings = merge($default_settings, $logstash::settings)
   $startup_options = merge($default_startup_options, $logstash::startup_options)
   $jvm_options = $logstash::jvm_options
+  $pipelines = $logstash::pipelines
+
+  File {
+    owner  => $logstash::logstash_user,
+    group  => $logstash::logstash_group,
+    mode   => '0644',
+    notify => Exec['logstash-system-install'],
+  }
 
   if $logstash::ensure == 'present' {
     case $logstash::status {
@@ -80,6 +88,20 @@ class logstash::service {
     # ..and make sure the JVM options are up to date.
     file {"${logstash::config_dir}/jvm.options":
       content => template('logstash/jvm.options.erb'),
+    }
+
+    # ..and pipelines.yml, if the user provided such. If they didn't, zero out
+    # the file, which will default Logstash to traditional single-pipeline
+    # behaviour.
+    if(empty($pipelines)) {
+      file {"${logstash::config_dir}/logstash/pipelines.yml":
+        content => '',
+      }
+    }
+    else {
+      file {"${logstash::config_dir}/logstash/pipelines.yml":
+        content => template('logstash/pipelines.yml.erb'),
+      }
     }
 
     # ..and the Logstash internal settings too.
