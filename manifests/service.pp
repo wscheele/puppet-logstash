@@ -185,11 +185,4 @@ class logstash::service {
     File<| tag == 'logstash_config' |> ~> Service['logstash']
     Logstash::Plugin<| |> ~> Service['logstash']
   }
-
-  File {
-    owner  => $logstash::logstash_user,
-    group  => $logstash::logstash_group,
-    mode   => '0664',
-    notify => Exec['logstash-system-install'],
-  }
 }
