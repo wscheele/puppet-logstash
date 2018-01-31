@@ -137,7 +137,7 @@ class logstash::package(
           ensure       => present,
           source       => "${download_base_url}/logstash-${logstash::version}.zip",
           extract      => true,
-          extract_path => inline_template("<%= Pathname.new(scope['logstash::home_dir']).parent %>"),
+          extract_path => 'C:\Program Files',
           creates      => $logstash::home_dir,
           cleanup      => true,
         } -> # add package resource for other resources to require
