@@ -119,12 +119,12 @@ define logstash::plugin (
           'findstr'
         }
         default: {
-          'grep -q'
+          'grep --fixed-strings -q'
         }
       }
       exec { "install-${name}":
         command => "${exe} install ${plugin}",
-        unless  => "${grep} ${name} ${logstash::home_dir}/Gemfile",
+        unless  => "${exe} list ^${name}$",
         creates => $creates,
       }
     }
@@ -132,7 +132,7 @@ define logstash::plugin (
     /^\d+\.\d+\.\d+/: {
       exec { "install-${name}":
         command => "${exe} install --version ${ensure} ${plugin}",
-        unless  => "${grep} ${name} ${logstash::home_dir}/Gemfile | ${grep} ${ensure}",
+        unless  => "${exe} list --verbose ^${name}$ | ${grep} '(${ensure})'",
         creates => $creates,
       }
     }
@@ -140,7 +140,7 @@ define logstash::plugin (
     'absent': {
       exec { "remove-${name}":
         command => "${exe} remove ${name}",
-        onlyif  => "${exe} list | grep -q ^${name}$",
+        onlyif  => "${exe} list | ${grep} ${name}",
       }
     }
 
